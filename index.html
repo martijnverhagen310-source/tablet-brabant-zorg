@@ -1,28 +1,26 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
+<link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Zorg Tablet</title>
-
-<link rel="manifest" href="manifest.json">
 
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, Arial;
+  font-family: Arial;
   background: linear-gradient(135deg, #74b9ff, #4facfe);
   overflow: hidden;
 }
 
-/* CLOCK */
 #clock {
   position: fixed;
   top: 10px;
   right: 15px;
   color: white;
   font-weight: bold;
+  z-index: 999;
 }
 
 /* LOGIN */
@@ -49,6 +47,7 @@ body {
   border-radius: 10px;
   background: white;
   font-weight: bold;
+  cursor: pointer;
 }
 
 /* APP */
@@ -83,6 +82,7 @@ h1 {
   border-radius: 15px;
   text-align: center;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .back {
@@ -103,6 +103,13 @@ h1 {
   justify-content: center;
   align-items: center;
   border-radius: 15px;
+}
+
+/* INPUT */
+input {
+  padding: 10px;
+  width: 80%;
+  margin: 5px;
 }
 </style>
 </head>
@@ -193,47 +200,56 @@ Bel zorg
 <script>
 
 function login(){
-  if(code.value === "6767"){
-    login.style.display = "none";
-    container.style.display = "flex";
+  const code = document.getElementById("code").value;
+  const loginScreen = document.getElementById("login");
+  const app = document.getElementById("container");
+
+  if(code === "6767"){
+    loginScreen.style.display = "none";
+    app.style.display = "flex";
     load();
   } else {
-    alert("Fout");
+    alert("Foute code");
   }
 }
 
-/* SWIPE */
+/* NAV */
 function go(i){
-  container.style.transform = `translateX(-${i * 100}vw)`;
+  document.getElementById("container").style.transform =
+  `translateX(-${i * 100}vw)`;
 }
 
 /* TV */
-function tv(a){
+function tv(x){
   const t = document.getElementById("tv");
+
   const map = {
     on:"TV AAN",
     off:"TV UIT",
     up:"Kanaal ↑",
     down:"Kanaal ↓"
   };
-  t.innerText = map[a];
+
+  t.innerText = map[x];
 }
 
-/* OPSLAG */
+/* OPSLAAN */
 function saveEten(){
-  localStorage.setItem("eten", eten.value);
-  etenText.innerText = eten.value;
+  const v = document.getElementById("eten").value;
+  localStorage.setItem("eten", v);
+  document.getElementById("etenText").innerText = v;
 }
 
 function saveMed(){
-  localStorage.setItem("med", med.value);
-  medText.innerText = med.value;
+  const v = document.getElementById("med").value;
+  localStorage.setItem("med", v);
+  document.getElementById("medText").innerText = v;
 }
 
 /* PLANNING */
 function addPlan(){
   let arr = JSON.parse(localStorage.getItem("plan") || "[]");
-  arr.push(plan.value);
+  arr.push(document.getElementById("plan").value);
   localStorage.setItem("plan", JSON.stringify(arr));
   load();
 }
@@ -248,17 +264,22 @@ function del(i){
 function load(){
   let arr = JSON.parse(localStorage.getItem("plan") || "[]");
 
-  list.innerHTML = arr.map((p,i)=>
-    `<div class="btn">${p} <button onclick="del(${i})">X</button></div>`
-  ).join("");
+  document.getElementById("list").innerHTML =
+  arr.map((p,i)=>`
+    <div class="btn">${p} <button onclick="del(${i})">X</button></div>
+  `).join("");
 
-  etenText.innerText = localStorage.getItem("eten") || "";
-  medText.innerText = localStorage.getItem("med") || "";
+  document.getElementById("etenText").innerText =
+    localStorage.getItem("eten") || "";
+
+  document.getElementById("medText").innerText =
+    localStorage.getItem("med") || "";
 }
 
 /* CLOCK */
 setInterval(()=>{
-  clock.innerText = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("clock").innerText =
+  new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
 },1000);
 
 </script>
