@@ -1,0 +1,8 @@
+{
+  "name": "Zorg Tablet",
+  "short_name": "Zorg",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#4facfe",
+  "theme_color": "#4facfe"
+}

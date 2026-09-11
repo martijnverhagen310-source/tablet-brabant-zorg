@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Zorg Tablet</title>
+
+<link rel="manifest" href="manifest.json">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, Arial;
+  background: linear-gradient(135deg, #74b9ff, #4facfe);
+  overflow: hidden;
+}
+
+/* CLOCK */
+#clock {
+  position: fixed;
+  top: 10px;
+  right: 15px;
+  color: white;
+  font-weight: bold;
+}
+
+/* LOGIN */
+#login {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+#login input {
+  padding: 12px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: none;
+  text-align: center;
+}
+
+#login button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 10px;
+  background: white;
+  font-weight: bold;
+}
+
+/* APP */
+#container {
+  display: flex;
+  width: 600vw;
+  height: 100vh;
+  transition: transform 0.4s ease;
+}
+
+.page {
+  min-width: 100vw;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.btn {
+  background: rgba(255,255,255,0.9);
+  padding: 18px;
+  border-radius: 15px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.back {
+  margin-top: 20px;
+  background: black;
+  color: white;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+/* TV */
+.tv {
+  background: black;
+  color: white;
+  height: 180px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="clock"></div>
+
+<!-- LOGIN -->
+<div id="login">
+  <h1>Login</h1>
+  <input id="code" type="password" placeholder="6767">
+  <button onclick="login()">Start</button>
+</div>
+
+<!-- APP -->
+<div id="container" style="display:none;">
+
+<!-- HOME -->
+<div class="page">
+<h1>🏠 Home</h1>
+
+<div class="grid">
+<div class="btn" onclick="go(1)">📺 TV</div>
+<div class="btn" onclick="go(2)">🍽️ Eten</div>
+<div class="btn" onclick="go(3)">💊 Medicijn</div>
+<div class="btn" onclick="go(4)">📞 Bellen</div>
+<div class="btn" onclick="go(5)">📅 Planning</div>
+</div>
+</div>
+
+<!-- TV -->
+<div class="page">
+<h1>📺 TV</h1>
+<div class="tv" id="tv">TV UIT</div>
+
+<div class="grid">
+<div class="btn" onclick="tv('on')">Aan</div>
+<div class="btn" onclick="tv('off')">Uit</div>
+<div class="btn" onclick="tv('up')">⬆</div>
+<div class="btn" onclick="tv('down')">⬇</div>
+</div>
+
+<div class="back" onclick="go(0)">Terug</div>
+</div>
+
+<!-- ETEN -->
+<div class="page">
+<h1>🍽️ Eten</h1>
+<input id="eten">
+<div class="btn" onclick="saveEten()">Opslaan</div>
+<p id="etenText"></p>
+<div class="back" onclick="go(0)">Terug</div>
+</div>
+
+<!-- MEDICIJN -->
+<div class="page">
+<h1>💊 Medicijn</h1>
+<input id="med">
+<div class="btn" onclick="saveMed()">Opslaan</div>
+<p id="medText"></p>
+<div class="back" onclick="go(0)">Terug</div>
+</div>
+
+<!-- BELLEN -->
+<div class="page">
+<h1>📞 Bellen</h1>
+<div class="btn" onclick="window.open('https://wa.me/31612223226','_blank')">
+Bel zorg
+</div>
+<div class="back" onclick="go(0)">Terug</div>
+</div>
+
+<!-- PLANNING -->
+<div class="page">
+<h1>📅 Planning</h1>
+
+<input id="plan">
+<div class="btn" onclick="addPlan()">Toevoegen</div>
+
+<div id="list"></div>
+
+<div class="back" onclick="go(0)">Terug</div>
+</div>
+
+</div>
+
+<script>
+
+function login(){
+  if(code.value === "6767"){
+    login.style.display = "none";
+    container.style.display = "flex";
+    load();
+  } else {
+    alert("Fout");
+  }
+}
+
+/* SWIPE */
+function go(i){
+  container.style.transform = `translateX(-${i * 100}vw)`;
+}
+
+/* TV */
+function tv(a){
+  const t = document.getElementById("tv");
+  const map = {
+    on:"TV AAN",
+    off:"TV UIT",
+    up:"Kanaal ↑",
+    down:"Kanaal ↓"
+  };
+  t.innerText = map[a];
+}
+
+/* OPSLAG */
+function saveEten(){
+  localStorage.setItem("eten", eten.value);
+  etenText.innerText = eten.value;
+}
+
+function saveMed(){
+  localStorage.setItem("med", med.value);
+  medText.innerText = med.value;
+}
+
+/* PLANNING */
+function addPlan(){
+  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
+  arr.push(plan.value);
+  localStorage.setItem("plan", JSON.stringify(arr));
+  load();
+}
+
+function del(i){
+  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
+  arr.splice(i,1);
+  localStorage.setItem("plan", JSON.stringify(arr));
+  load();
+}
+
+function load(){
+  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
+
+  list.innerHTML = arr.map((p,i)=>
+    `<div class="btn">${p} <button onclick="del(${i})">X</button></div>`
+  ).join("");
+
+  etenText.innerText = localStorage.getItem("eten") || "";
+  medText.innerText = localStorage.getItem("med") || "";
+}
+
+/* CLOCK */
+setInterval(()=>{
+  clock.innerText = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+},1000);
+
+</script>
+
+</body>
+</html>
