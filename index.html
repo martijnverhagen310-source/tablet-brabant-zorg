@@ -1,286 +1,228 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<link rel="manifest" href="manifest.json">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zorg Tablet</title>
 
 <style>
 body {
-  margin: 0;
   font-family: Arial;
-  background: linear-gradient(135deg, #74b9ff, #4facfe);
-  overflow: hidden;
+  background: #6bb6ff;
+  margin: 0;
+  text-align: center;
 }
 
-#clock {
-  position: fixed;
-  top: 10px;
-  right: 15px;
-  color: white;
-  font-weight: bold;
-  z-index: 999;
-}
-
-/* LOGIN */
-#login {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-#login input {
-  padding: 12px;
-  font-size: 18px;
-  border-radius: 10px;
+button {
+  width: 90%;
+  padding: 25px;
+  margin: 10px;
+  font-size: 24px;
+  border-radius: 20px;
   border: none;
-  text-align: center;
 }
 
-#login button {
-  margin-top: 10px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 10px;
-  background: white;
-  font-weight: bold;
-  cursor: pointer;
+/* GROTE SVG ICONS */
+.icon {
+  width: 40px;
+  height: 40px;
+  vertical-align: middle;
 }
 
-/* APP */
-#container {
-  display: flex;
-  width: 600vw;
-  height: 100vh;
-  transition: transform 0.4s ease;
-}
+.page { display:none; }
+.active { display:block; }
 
-.page {
-  min-width: 100vw;
-  height: 100vh;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-h1 {
-  text-align: center;
+.emergency {
+  background: red;
   color: white;
+  font-size: 28px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
-
-.btn {
-  background: rgba(255,255,255,0.9);
-  padding: 18px;
-  border-radius: 15px;
-  text-align: center;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.back {
-  margin-top: 20px;
-  background: black;
-  color: white;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-/* TV */
 .tv {
   background: black;
   color: white;
-  height: 180px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 15px;
-}
-
-/* INPUT */
-input {
-  padding: 10px;
-  width: 80%;
-  margin: 5px;
+  padding: 40px;
+  border-radius: 20px;
 }
 </style>
 </head>
 
 <body>
 
-<div id="clock"></div>
-
-<!-- LOGIN -->
-<div id="login">
-  <h1>Login</h1>
-  <input id="code" type="password" placeholder="6767">
-  <button onclick="login()">Start</button>
-</div>
-
-<!-- APP -->
-<div id="container" style="display:none;">
-
 <!-- HOME -->
-<div class="page">
-<h1>🏠 Home</h1>
+<div id="home" class="page active">
+  <h1>🏠 Home</h1>
 
-<div class="grid">
-<div class="btn" onclick="go(1)">📺 TV</div>
-<div class="btn" onclick="go(2)">🍽️ Eten</div>
-<div class="btn" onclick="go(3)">💊 Medicijn</div>
-<div class="btn" onclick="go(4)">📞 Bellen</div>
-<div class="btn" onclick="go(5)">📅 Planning</div>
-</div>
-</div>
+  <button class="emergency" onclick="nood()">🚨 NOOD</button>
 
-<!-- TV -->
-<div class="page">
-<h1>📺 TV</h1>
-<div class="tv" id="tv">TV UIT</div>
-
-<div class="grid">
-<div class="btn" onclick="tv('on')">Aan</div>
-<div class="btn" onclick="tv('off')">Uit</div>
-<div class="btn" onclick="tv('up')">⬆</div>
-<div class="btn" onclick="tv('down')">⬇</div>
-</div>
-
-<div class="back" onclick="go(0)">Terug</div>
-</div>
-
-<!-- ETEN -->
-<div class="page">
-<h1>🍽️ Eten</h1>
-<input id="eten">
-<div class="btn" onclick="saveEten()">Opslaan</div>
-<p id="etenText"></p>
-<div class="back" onclick="go(0)">Terug</div>
-</div>
-
-<!-- MEDICIJN -->
-<div class="page">
-<h1>💊 Medicijn</h1>
-<input id="med">
-<div class="btn" onclick="saveMed()">Opslaan</div>
-<p id="medText"></p>
-<div class="back" onclick="go(0)">Terug</div>
+  <button onclick="show('bellen')">📞 Bellen</button>
+  <button onclick="show('tv')">📺 TV</button>
+  <button onclick="show('reminders')">⏰ Herinnering</button>
+  <button onclick="toggleVoice()">🔇 Stem aan/uit</button>
 </div>
 
 <!-- BELLEN -->
-<div class="page">
-<h1>📞 Bellen</h1>
-<div class="btn" onclick="window.open('https://wa.me/31612223226','_blank')">
-Bel zorg
-</div>
-<div class="back" onclick="go(0)">Terug</div>
-</div>
+<div id="bellen" class="page">
+  <h1>Bellen</h1>
 
-<!-- PLANNING -->
-<div class="page">
-<h1>📅 Planning</h1>
+  <button onclick="belZorg()">👩‍⚕️ Zorg</button>
+  <button onclick="belFamilie()">👨‍👩‍👧 Familie</button>
 
-<input id="plan">
-<div class="btn" onclick="addPlan()">Toevoegen</div>
-
-<div id="list"></div>
-
-<div class="back" onclick="go(0)">Terug</div>
+  <button onclick="show('home')">⬅️ Terug</button>
 </div>
 
+<!-- TV -->
+<div id="tv" class="page">
+  <h1>TV</h1>
+
+  <div class="tv" id="tvText">UIT</div>
+  <div id="volumeText">Volume: 10</div>
+
+  <button onclick="tv('on')">Aan</button>
+  <button onclick="tv('off')">Uit</button>
+  <button onclick="volumeUp()">🔊 +</button>
+  <button onclick="volumeDown()">🔉 -</button>
+
+  <button onclick="show('home')">⬅️ Terug</button>
+</div>
+
+<!-- REMINDERS -->
+<div id="reminders" class="page">
+  <h1>Herinnering</h1>
+
+  <input id="text" placeholder="Wat?" style="padding:15px; font-size:20px;">
+  <input id="time" type="time" style="padding:15px; font-size:20px;">
+
+  <button onclick="addReminder()">Opslaan</button>
+
+  <div id="list"></div>
+
+  <button onclick="show('home')">⬅️ Terug</button>
 </div>
 
 <script>
 
-function login(){
-  const code = document.getElementById("code").value;
-  const loginScreen = document.getElementById("login");
-  const app = document.getElementById("container");
-
-  if(code === "6767"){
-    loginScreen.style.display = "none";
-    app.style.display = "flex";
-    load();
-  } else {
-    alert("Foute code");
-  }
+/* NAV */
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-/* NAV */
-function go(i){
-  document.getElementById("container").style.transform =
-  `translateX(-${i * 100}vw)`;
+/* STEM */
+let voice = true;
+let speakTimer;
+
+function speak(text){
+  if(!voice) return;
+
+  clearTimeout(speakTimer);
+
+  speakTimer = setTimeout(()=>{
+    speechSynthesis.cancel();
+    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  },2000);
+}
+
+function toggleVoice(){
+  voice = !voice;
+  alert("Stem " + (voice ? "AAN" : "UIT"));
+}
+
+/* NOOD */
+function nood(){
+  speak("Noodhulp");
+  navigator.vibrate?.(200);
+  window.open("tel:112");
+}
+
+/* BELLEN */
+function belZorg(){
+  speak("Zorgverlener");
+  window.open("https://wa.me/31612223226");
+}
+
+function belFamilie(){
+  speak("Familie");
+  window.open("https://wa.me/31600000000");
 }
 
 /* TV */
+let volume = 10;
+
 function tv(x){
-  const t = document.getElementById("tv");
-
-  const map = {
-    on:"TV AAN",
-    off:"TV UIT",
-    up:"Kanaal ↑",
-    down:"Kanaal ↓"
-  };
-
-  t.innerText = map[x];
+  tvText.innerText = x === "on" ? "AAN" : "UIT";
+  speak("TV " + tvText.innerText);
 }
 
-/* OPSLAAN */
-function saveEten(){
-  const v = document.getElementById("eten").value;
-  localStorage.setItem("eten", v);
-  document.getElementById("etenText").innerText = v;
+function volumeUp(){
+  volume++;
+  updateVolume();
 }
 
-function saveMed(){
-  const v = document.getElementById("med").value;
-  localStorage.setItem("med", v);
-  document.getElementById("medText").innerText = v;
+function volumeDown(){
+  volume--;
+  updateVolume();
 }
 
-/* PLANNING */
-function addPlan(){
-  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
-  arr.push(document.getElementById("plan").value);
-  localStorage.setItem("plan", JSON.stringify(arr));
-  load();
+function updateVolume(){
+  volumeText.innerText = "Volume: " + volume;
+  speak("Volume " + volume);
 }
 
-function del(i){
-  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
-  arr.splice(i,1);
-  localStorage.setItem("plan", JSON.stringify(arr));
+/* HERINNERINGEN */
+function addReminder(){
+  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+
+  arr.push({
+    text: text.value,
+    time: time.value
+  });
+
+  localStorage.setItem("rem", JSON.stringify(arr));
   load();
 }
 
 function load(){
-  let arr = JSON.parse(localStorage.getItem("plan") || "[]");
+  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
-  document.getElementById("list").innerHTML =
-  arr.map((p,i)=>`
-    <div class="btn">${p} <button onclick="del(${i})">X</button></div>
-  `).join("");
-
-  document.getElementById("etenText").innerText =
-    localStorage.getItem("eten") || "";
-
-  document.getElementById("medText").innerText =
-    localStorage.getItem("med") || "";
+  list.innerHTML = arr.map((r,i)=>
+    `<div>${r.text} - ${r.time}
+    <button onclick="del(${i})">❌</button></div>`
+  ).join("");
 }
 
-/* CLOCK */
-setInterval(()=>{
-  document.getElementById("clock").innerText =
-  new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-},1000);
+function del(i){
+  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+  arr.splice(i,1);
+  localStorage.setItem("rem", JSON.stringify(arr));
+  load();
+}
+
+/* NOTIFICATIES */
+function checkReminders(){
+  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+
+  arr.forEach(r=>{
+    if(r.time === now){
+      new Notification("Herinnering: " + r.text);
+      speak(r.text);
+    }
+  });
+}
+
+setInterval(checkReminders,60000);
+
+if(Notification.permission !== "granted"){
+  Notification.requestPermission();
+}
+
+load();
+
+/* SERVICE WORKER */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js");
+}
 
 </script>
 
