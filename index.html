@@ -3,43 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Zorg Tablet</title>
 
 <style>
-body {
+html, body {
   margin: 0;
+  padding: 0;
   font-family: Arial;
   background: #6bb6ff;
-  text-align: center;
-  touch-action: manipulation;
+
+  /* 🔥 HARD ZOOM BLOCK */
+  touch-action: none;
+  -ms-touch-action: none;
+  overscroll-behavior: none;
 }
 
-/* PAGINA */
+/* extra iOS zoom block */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .page { display:none; }
 .active { display:block; }
 
-/* MEGA KNOPPEN */
 button {
   width: 95%;
-  height: 130px;
+  height: 140px;
   margin: 10px;
-  font-size: 34px;
+  font-size: 36px;
   border-radius: 25px;
   border: none;
 }
 
-/* KLEUREN */
 .red { background: red; color: white; }
 .white { background: white; }
 
-/* INPUT */
 input {
   width: 90%;
   padding: 20px;
-  font-size: 24px;
+  font-size: 26px;
   border-radius: 15px;
   border: none;
-  margin: 10px;
 }
 </style>
 </head>
@@ -50,20 +57,20 @@ input {
 <div id="home" class="page active">
   <h1>🏠</h1>
 
-  <button class="red" onclick="clickFix(nood)">🚨 NOOD</button>
-  <button class="white" onclick="clickFix(()=>show('call'))">📞 BELLEN</button>
-  <button class="white" onclick="clickFix(()=>show('rem'))">⏰ HERINNERING</button>
-  <button onclick="clickFix(toggleVoice)">🔇 STEM</button>
+  <button class="red" onclick="tap(nood)">🚨 NOOD</button>
+  <button class="white" onclick="tap(()=>show('call'))">📞 BELLEN</button>
+  <button class="white" onclick="tap(()=>show('rem'))">⏰ HERINNERING</button>
+  <button onclick="tap(toggleVoice)">🔊 STEM</button>
 </div>
 
 <!-- BELLEN -->
 <div id="call" class="page">
   <h1>📞</h1>
 
-  <button onclick="clickFix(belZorg)">👩‍⚕️ ZORG</button>
-  <button onclick="clickFix(belFamilie)">👨‍👩‍👧 FAMILIE</button>
+  <button onclick="tap(belZorg)">👩‍⚕️ ZORG</button>
+  <button onclick="tap(belFamilie)">👨‍👩‍👧 FAMILIE</button>
 
-  <button onclick="clickFix(()=>show('home'))">⬅️</button>
+  <button onclick="tap(()=>show('home'))">⬅️</button>
 </div>
 
 <!-- HERINNERING -->
@@ -73,77 +80,82 @@ input {
   <input id="text" placeholder="Wat?">
   <input id="time" type="time">
 
-  <button onclick="clickFix(addReminder)">OPSLAAN</button>
+  <button onclick="tap(addReminder)">OPSLAAN</button>
 
   <div id="list"></div>
 
-  <button onclick="clickFix(()=>show('home'))">⬅️</button>
+  <button onclick="tap(()=>show('home'))">⬅️</button>
 </div>
 
 <script>
 
 /* ======================
-   iPAD FIXES
+   ZOOM FIX (ECHT HARD)
 ====================== */
 
-// voorkom dubbelklik zoom
-let lastTouch = 0;
-document.addEventListener("touchend", function (e) {
-  const now = Date.now();
-  if (now - lastTouch <= 300) {
+// blok double tap zoom
+let lastTap = 0;
+document.addEventListener("touchend", function(e){
+  let now = Date.now();
+  if(now - lastTap < 350){
     e.preventDefault();
   }
-  lastTouch = now;
-}, false);
+  lastTap = now;
+}, {passive:false});
 
-// voorkom pinch zoom
-document.addEventListener('gesturestart', e => e.preventDefault());
+// blok pinch zoom
+document.addEventListener("gesturestart", e => e.preventDefault());
+document.addEventListener("gesturechange", e => e.preventDefault());
+document.addEventListener("gestureend", e => e.preventDefault());
 
 /* ======================
-   CLICK BESCHERMING
+   SAFE TAP WRAPPER
 ====================== */
 
-let lastClick = 0;
+let lastAction = 0;
 
-function clickFix(fn){
-  const now = Date.now();
-  if(now - lastClick < 500) return; // blokkeer spam klikken
-  lastClick = now;
+function tap(fn){
+  let now = Date.now();
+  if(now - lastAction < 400) return;
+  lastAction = now;
 
   unlockAudio();
-  navigator.vibrate?.(50);
   fn();
 }
 
 /* ======================
-   AUDIO FIX (iPad)
+   AUDIO FIX (iPad SAFE)
 ====================== */
 
-let audioUnlocked = false;
+let audioReady = false;
 let voice = true;
 let timer;
 
 function unlockAudio(){
-  if(audioUnlocked) return;
+  if(audioReady) return;
 
-  speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-  audioUnlocked = true;
+  const u = new SpeechSynthesisUtterance(" ");
+  speechSynthesis.speak(u);
+
+  audioReady = true;
 }
 
 function speak(text){
-  if(!voice || !audioUnlocked) return;
+  if(!voice || !audioReady) return;
 
   clearTimeout(timer);
 
   timer = setTimeout(()=>{
     speechSynthesis.cancel();
-    speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-  },2000);
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "nl-NL";
+    speechSynthesis.speak(msg);
+  }, 1500);
 }
 
 function toggleVoice(){
   voice = !voice;
-  alert("Stem " + (voice ? "AAN" : "UIT"));
+  alert("Stem: " + (voice ? "AAN" : "UIT"));
 }
 
 /* ======================
@@ -156,7 +168,7 @@ function show(id){
 }
 
 /* ======================
-   NOOD
+   FUNCTIES
 ====================== */
 
 function nood(){
@@ -164,12 +176,8 @@ function nood(){
   window.open("tel:112");
 }
 
-/* ======================
-   BELLEN
-====================== */
-
 function belZorg(){
-  speak("Zorgverlener");
+  speak("Zorg");
   window.open("https://wa.me/31612223226");
 }
 
@@ -198,9 +206,9 @@ function load(){
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
   list.innerHTML = arr.map((r,i)=>
-    `<div style="font-size:24px; margin:10px;">
+    `<div style="font-size:26px; margin:12px;">
       ${r.text} - ${r.time}
-      <button onclick="clickFix(()=>del(${i}))">❌</button>
+      <button onclick="tap(()=>del(${i}))">❌</button>
     </div>`
   ).join("");
 }
@@ -216,7 +224,7 @@ function del(i){
    NOTIFICATIES
 ====================== */
 
-function check(){
+setInterval(()=>{
   let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
@@ -226,9 +234,7 @@ function check(){
       speak(r.text);
     }
   });
-}
-
-setInterval(check,60000);
+},60000);
 
 if(Notification.permission !== "granted"){
   Notification.requestPermission();
