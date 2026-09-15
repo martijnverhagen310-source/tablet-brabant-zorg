@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Zorg Tablet</title>
 
 <style>
@@ -11,23 +11,28 @@ body {
   font-family: Arial;
   background: #6bb6ff;
   text-align: center;
+  touch-action: manipulation;
 }
 
+/* PAGINA */
 .page { display:none; }
 .active { display:block; }
 
+/* MEGA KNOPPEN */
 button {
   width: 95%;
-  height: 120px;
+  height: 130px;
   margin: 10px;
-  font-size: 32px;
+  font-size: 34px;
   border-radius: 25px;
   border: none;
 }
 
+/* KLEUREN */
 .red { background: red; color: white; }
 .white { background: white; }
 
+/* INPUT */
 input {
   width: 90%;
   padding: 20px;
@@ -43,71 +48,90 @@ input {
 
 <!-- HOME -->
 <div id="home" class="page active">
-  <h1>🏠 Home</h1>
+  <h1>🏠</h1>
 
-  <button class="red" onclick="nood()">🚨 NOODHULP</button>
-  <button class="white" onclick="show('call')">📞 BELLEN</button>
-  <button class="white" onclick="show('rem')">⏰ HERINNERING</button>
-  <button onclick="toggleVoice()">🔇 STEM AAN/UIT</button>
+  <button class="red" onclick="clickFix(nood)">🚨 NOOD</button>
+  <button class="white" onclick="clickFix(()=>show('call'))">📞 BELLEN</button>
+  <button class="white" onclick="clickFix(()=>show('rem'))">⏰ HERINNERING</button>
+  <button onclick="clickFix(toggleVoice)">🔇 STEM</button>
 </div>
 
 <!-- BELLEN -->
 <div id="call" class="page">
-  <h1>Bellen</h1>
+  <h1>📞</h1>
 
-  <button onclick="belZorg()">👩‍⚕️ ZORG</button>
-  <button onclick="belFamilie()">👨‍👩‍👧 FAMILIE</button>
+  <button onclick="clickFix(belZorg)">👩‍⚕️ ZORG</button>
+  <button onclick="clickFix(belFamilie)">👨‍👩‍👧 FAMILIE</button>
 
-  <button onclick="show('home')">⬅️ TERUG</button>
+  <button onclick="clickFix(()=>show('home'))">⬅️</button>
 </div>
 
 <!-- HERINNERING -->
 <div id="rem" class="page">
-  <h1>Herinnering</h1>
+  <h1>⏰</h1>
 
   <input id="text" placeholder="Wat?">
   <input id="time" type="time">
 
-  <button onclick="addReminder()">OPSLAAN</button>
+  <button onclick="clickFix(addReminder)">OPSLAAN</button>
 
   <div id="list"></div>
 
-  <button onclick="show('home')">⬅️ TERUG</button>
+  <button onclick="clickFix(()=>show('home'))">⬅️</button>
 </div>
 
 <script>
 
 /* ======================
-   AUTO START (GEEN LOGIN)
+   iPAD FIXES
 ====================== */
 
-window.onload = function(){
-  // eerste keer check (optioneel)
-  if(!localStorage.getItem("setupDone")){
-    let code = prompt("Instelcode (eenmalig):");
-
-    if(code === "6767"){
-      localStorage.setItem("setupDone","true");
-      alert("Klaar!");
-    } else {
-      alert("Foute code");
-      location.reload();
-    }
+// voorkom dubbelklik zoom
+let lastTouch = 0;
+document.addEventListener("touchend", function (e) {
+  const now = Date.now();
+  if (now - lastTouch <= 300) {
+    e.preventDefault();
   }
+  lastTouch = now;
+}, false);
+
+// voorkom pinch zoom
+document.addEventListener('gesturestart', e => e.preventDefault());
+
+/* ======================
+   CLICK BESCHERMING
+====================== */
+
+let lastClick = 0;
+
+function clickFix(fn){
+  const now = Date.now();
+  if(now - lastClick < 500) return; // blokkeer spam klikken
+  lastClick = now;
+
+  unlockAudio();
+  navigator.vibrate?.(50);
+  fn();
 }
 
-/* NAV */
-function show(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
+/* ======================
+   AUDIO FIX (iPad)
+====================== */
 
-/* STEM */
+let audioUnlocked = false;
 let voice = true;
 let timer;
 
+function unlockAudio(){
+  if(audioUnlocked) return;
+
+  speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+  audioUnlocked = true;
+}
+
 function speak(text){
-  if(!voice) return;
+  if(!voice || !audioUnlocked) return;
 
   clearTimeout(timer);
 
@@ -122,14 +146,28 @@ function toggleVoice(){
   alert("Stem " + (voice ? "AAN" : "UIT"));
 }
 
-/* NOOD */
+/* ======================
+   NAV
+====================== */
+
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ======================
+   NOOD
+====================== */
+
 function nood(){
-  speak("Noodhulp wordt gebeld");
-  navigator.vibrate?.(200);
+  speak("Noodhulp");
   window.open("tel:112");
 }
 
-/* BELLEN */
+/* ======================
+   BELLEN
+====================== */
+
 function belZorg(){
   speak("Zorgverlener");
   window.open("https://wa.me/31612223226");
@@ -140,7 +178,10 @@ function belFamilie(){
   window.open("https://wa.me/31600000000");
 }
 
-/* HERINNERING */
+/* ======================
+   HERINNERING
+====================== */
+
 function addReminder(){
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
@@ -157,8 +198,10 @@ function load(){
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
   list.innerHTML = arr.map((r,i)=>
-    `<div>${r.text} - ${r.time}
-    <button onclick="del(${i})">❌</button></div>`
+    `<div style="font-size:24px; margin:10px;">
+      ${r.text} - ${r.time}
+      <button onclick="clickFix(()=>del(${i}))">❌</button>
+    </div>`
   ).join("");
 }
 
@@ -169,7 +212,10 @@ function del(i){
   load();
 }
 
-/* NOTIFICATIES */
+/* ======================
+   NOTIFICATIES
+====================== */
+
 function check(){
   let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
