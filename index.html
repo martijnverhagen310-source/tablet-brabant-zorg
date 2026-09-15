@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>Zorg Tablet</title>
 
 <style>
@@ -20,9 +19,9 @@ html, body {
 
 button {
   width: 95%;
-  height: 130px;
+  height: 140px;
   margin: 10px;
-  font-size: 34px;
+  font-size: 38px;
   border-radius: 25px;
   border: none;
 }
@@ -37,6 +36,14 @@ button {
   border-radius: 20px;
   font-size: 28px;
 }
+
+input {
+  width: 90%;
+  padding: 20px;
+  font-size: 26px;
+  border-radius: 15px;
+  border: none;
+}
 </style>
 </head>
 
@@ -46,45 +53,55 @@ button {
 <div id="home" class="page active">
   <h1>🏠</h1>
 
-  <button class="red" onclick="tap(nood)">🚨 NOOD</button>
+  <button class="white" onclick="tap(()=>show('tv'))">📺 TV</button>
   <button class="white" onclick="tap(()=>show('call'))">📞 BELLEN</button>
-  <button class="white" onclick="tap(()=>show('info'))">📺 INFO</button>
+  <button class="white" onclick="tap(()=>show('rem'))">⏰ HERINNERING</button>
 </div>
 
-<!-- BELLEN -->
+<!-- TV -->
+<div id="tv" class="page">
+  <h1>📺 TV</h1>
+
+  <div class="box" id="tvStatus">TV: UIT</div>
+
+  <button onclick="tap(tvOn)">AAN</button>
+  <button onclick="tap(tvOff)">UIT</button>
+
+  <button onclick="tap(()=>show('home'))">⬅️ TERUG</button>
+</div>
+
+<!-- CALL -->
 <div id="call" class="page">
   <h1>📞</h1>
 
   <button onclick="tap(belZorg)">👩‍⚕️ ZORG</button>
   <button onclick="tap(belFamilie)">👨‍👩‍👧 FAMILIE</button>
 
-  <button onclick="tap(()=>show('home'))">⬅️</button>
+  <button onclick="tap(()=>show('home'))">⬅️ TERUG</button>
 </div>
 
-<!-- INFO (TV + TIJD + ETEN) -->
-<div id="info" class="page">
-  <h1>📺 INFO</h1>
+<!-- REMINDER -->
+<div id="rem" class="page">
+  <h1>⏰</h1>
 
-  <div class="box" id="timeBox">Tijd: --:--</div>
+  <input id="text" placeholder="Wat?">
+  <input id="time" type="time">
 
-  <div class="box" id="tvBox">TV: UIT</div>
-  <button onclick="tap(tvOn)">TV AAN</button>
-  <button onclick="tap(tvOff)">TV UIT</button>
+  <button onclick="tap(saveReminder)">OPSLAAN</button>
 
-  <div class="box" id="etenBox">Eten: niet ingesteld</div>
-  <input id="etenInput" placeholder="Eten van vandaag">
-  <button onclick="tap(saveEten)">OPSLAAN</button>
+  <div id="list"></div>
 
-  <button onclick="tap(()=>show('home'))">⬅️</button>
+  <button onclick="tap(()=>show('home'))">⬅️ TERUG</button>
 </div>
 
 <script>
 
 /* ======================
-   ZOOM FIX
+   ZOOM FIX iPAD
 ====================== */
 
 let lastTap = 0;
+
 document.addEventListener("touchend", e=>{
   let now = Date.now();
   if(now - lastTap < 350){
@@ -94,34 +111,42 @@ document.addEventListener("touchend", e=>{
 }, {passive:false});
 
 document.addEventListener("gesturestart", e=>e.preventDefault());
-document.addEventListener("gesturechange", e=>e.preventDefault());
 
 /* ======================
-   SAFE TAP
-====================== */
-
-let lastAction = 0;
-
-function tap(fn){
-  let now = Date.now();
-  if(now - lastAction < 400) return;
-  lastAction = now;
-
-  unlockAudio();
-  navigator.vibrate?.(50);
-  fn();
-}
-
-/* ======================
-   AUDIO
+   AUDIO FIX (BELANGRIJK)
 ====================== */
 
 let audioReady = false;
+let voice = true;
+let timer;
 
 function unlockAudio(){
   if(audioReady) return;
   speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
   audioReady = true;
+}
+
+function speak(text){
+  if(!voice || !audioReady) return;
+
+  clearTimeout(timer);
+
+  timer = setTimeout(()=>{
+    speechSynthesis.cancel();
+    let msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "nl-NL";
+    speechSynthesis.speak(msg);
+  }, 1500);
+}
+
+/* ======================
+   SAFE TAP
+====================== */
+
+function tap(fn){
+  unlockAudio();
+  navigator.vibrate?.(50);
+  fn();
 }
 
 /* ======================
@@ -131,25 +156,6 @@ function unlockAudio(){
 function show(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-
-  if(id === "info") updateInfo();
-}
-
-/* ======================
-   NOOD + BELLEN
-====================== */
-
-function nood(){
-  alert("NOODHULP");
-  window.open("tel:112");
-}
-
-function belZorg(){
-  window.open("https://wa.me/31612223226");
-}
-
-function belFamilie(){
-  window.open("https://wa.me/31600000000");
 }
 
 /* ======================
@@ -160,41 +166,85 @@ let tv = false;
 
 function tvOn(){
   tv = true;
-  document.getElementById("tvBox").innerText = "TV: AAN";
+  document.getElementById("tvStatus").innerText = "TV: AAN";
+  speak("TV aan");
 }
 
 function tvOff(){
   tv = false;
-  document.getElementById("tvBox").innerText = "TV: UIT";
+  document.getElementById("tvStatus").innerText = "TV: UIT";
+  speak("TV uit");
 }
 
 /* ======================
-   ETEN
+   BELLEN
 ====================== */
 
-function saveEten(){
-  localStorage.setItem("eten", etenInput.value);
-  updateInfo();
+function belZorg(){
+  speak("Zorgverlener bellen");
+  window.open("https://wa.me/31612223226");
+}
+
+function belFamilie(){
+  speak("Familie bellen");
+  window.open("https://wa.me/31600000000");
 }
 
 /* ======================
-   INFO UPDATE
+   HERINNERING
 ====================== */
 
-function updateInfo(){
-  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-  document.getElementById("timeBox").innerText = "Tijd: " + now;
+function saveReminder(){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
-  document.getElementById("etenBox").innerText =
-    "Eten: " + (localStorage.getItem("eten") || "niet ingesteld");
+  arr.push({
+    text: text.value,
+    time: time.value
+  });
+
+  localStorage.setItem("rem", JSON.stringify(arr));
+  load();
 }
 
-/* auto update tijd */
+function load(){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
+
+  list.innerHTML = arr.map((r,i)=>
+    `<div style="font-size:26px; margin:10px;">
+      ${r.text} - ${r.time}
+      <button onclick="tap(()=>del(${i}))">❌</button>
+    </div>`
+  ).join("");
+}
+
+function del(i){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
+  arr.splice(i,1);
+  localStorage.setItem("rem", JSON.stringify(arr));
+  load();
+}
+
+/* ======================
+   HERINNERING CHECK
+====================== */
+
 setInterval(()=>{
-  if(document.getElementById("info").classList.contains("active")){
-    updateInfo();
-  }
-},1000);
+  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
+
+  arr.forEach(r=>{
+    if(r.time === now){
+      speak(r.text);
+      new Notification("Herinnering: " + r.text);
+    }
+  });
+},60000);
+
+if(Notification.permission !== "granted"){
+  Notification.requestPermission();
+}
+
+load();
 
 </script>
 
