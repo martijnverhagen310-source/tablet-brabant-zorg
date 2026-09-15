@@ -7,42 +7,34 @@
 
 <style>
 body {
+  margin: 0;
   font-family: Arial;
   background: #6bb6ff;
-  margin: 0;
   text-align: center;
-}
-
-button {
-  width: 90%;
-  padding: 25px;
-  margin: 10px;
-  font-size: 24px;
-  border-radius: 20px;
-  border: none;
-}
-
-/* GROTE SVG ICONS */
-.icon {
-  width: 40px;
-  height: 40px;
-  vertical-align: middle;
 }
 
 .page { display:none; }
 .active { display:block; }
 
-.emergency {
-  background: red;
-  color: white;
-  font-size: 28px;
+button {
+  width: 95%;
+  height: 120px;
+  margin: 10px;
+  font-size: 32px;
+  border-radius: 25px;
+  border: none;
 }
 
-.tv {
-  background: black;
-  color: white;
-  padding: 40px;
-  border-radius: 20px;
+.red { background: red; color: white; }
+.white { background: white; }
+
+input {
+  width: 90%;
+  padding: 20px;
+  font-size: 24px;
+  border-radius: 15px;
+  border: none;
+  margin: 10px;
 }
 </style>
 </head>
@@ -53,54 +45,56 @@ button {
 <div id="home" class="page active">
   <h1>🏠 Home</h1>
 
-  <button class="emergency" onclick="nood()">🚨 NOOD</button>
-
-  <button onclick="show('bellen')">📞 Bellen</button>
-  <button onclick="show('tv')">📺 TV</button>
-  <button onclick="show('reminders')">⏰ Herinnering</button>
-  <button onclick="toggleVoice()">🔇 Stem aan/uit</button>
+  <button class="red" onclick="nood()">🚨 NOODHULP</button>
+  <button class="white" onclick="show('call')">📞 BELLEN</button>
+  <button class="white" onclick="show('rem')">⏰ HERINNERING</button>
+  <button onclick="toggleVoice()">🔇 STEM AAN/UIT</button>
 </div>
 
 <!-- BELLEN -->
-<div id="bellen" class="page">
+<div id="call" class="page">
   <h1>Bellen</h1>
 
-  <button onclick="belZorg()">👩‍⚕️ Zorg</button>
-  <button onclick="belFamilie()">👨‍👩‍👧 Familie</button>
+  <button onclick="belZorg()">👩‍⚕️ ZORG</button>
+  <button onclick="belFamilie()">👨‍👩‍👧 FAMILIE</button>
 
-  <button onclick="show('home')">⬅️ Terug</button>
+  <button onclick="show('home')">⬅️ TERUG</button>
 </div>
 
-<!-- TV -->
-<div id="tv" class="page">
-  <h1>TV</h1>
-
-  <div class="tv" id="tvText">UIT</div>
-  <div id="volumeText">Volume: 10</div>
-
-  <button onclick="tv('on')">Aan</button>
-  <button onclick="tv('off')">Uit</button>
-  <button onclick="volumeUp()">🔊 +</button>
-  <button onclick="volumeDown()">🔉 -</button>
-
-  <button onclick="show('home')">⬅️ Terug</button>
-</div>
-
-<!-- REMINDERS -->
-<div id="reminders" class="page">
+<!-- HERINNERING -->
+<div id="rem" class="page">
   <h1>Herinnering</h1>
 
-  <input id="text" placeholder="Wat?" style="padding:15px; font-size:20px;">
-  <input id="time" type="time" style="padding:15px; font-size:20px;">
+  <input id="text" placeholder="Wat?">
+  <input id="time" type="time">
 
-  <button onclick="addReminder()">Opslaan</button>
+  <button onclick="addReminder()">OPSLAAN</button>
 
   <div id="list"></div>
 
-  <button onclick="show('home')">⬅️ Terug</button>
+  <button onclick="show('home')">⬅️ TERUG</button>
 </div>
 
 <script>
+
+/* ======================
+   AUTO START (GEEN LOGIN)
+====================== */
+
+window.onload = function(){
+  // eerste keer check (optioneel)
+  if(!localStorage.getItem("setupDone")){
+    let code = prompt("Instelcode (eenmalig):");
+
+    if(code === "6767"){
+      localStorage.setItem("setupDone","true");
+      alert("Klaar!");
+    } else {
+      alert("Foute code");
+      location.reload();
+    }
+  }
+}
 
 /* NAV */
 function show(id){
@@ -110,14 +104,14 @@ function show(id){
 
 /* STEM */
 let voice = true;
-let speakTimer;
+let timer;
 
 function speak(text){
   if(!voice) return;
 
-  clearTimeout(speakTimer);
+  clearTimeout(timer);
 
-  speakTimer = setTimeout(()=>{
+  timer = setTimeout(()=>{
     speechSynthesis.cancel();
     speechSynthesis.speak(new SpeechSynthesisUtterance(text));
   },2000);
@@ -130,7 +124,7 @@ function toggleVoice(){
 
 /* NOOD */
 function nood(){
-  speak("Noodhulp");
+  speak("Noodhulp wordt gebeld");
   navigator.vibrate?.(200);
   window.open("tel:112");
 }
@@ -146,30 +140,7 @@ function belFamilie(){
   window.open("https://wa.me/31600000000");
 }
 
-/* TV */
-let volume = 10;
-
-function tv(x){
-  tvText.innerText = x === "on" ? "AAN" : "UIT";
-  speak("TV " + tvText.innerText);
-}
-
-function volumeUp(){
-  volume++;
-  updateVolume();
-}
-
-function volumeDown(){
-  volume--;
-  updateVolume();
-}
-
-function updateVolume(){
-  volumeText.innerText = "Volume: " + volume;
-  speak("Volume " + volume);
-}
-
-/* HERINNERINGEN */
+/* HERINNERING */
 function addReminder(){
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
@@ -199,7 +170,7 @@ function del(i){
 }
 
 /* NOTIFICATIES */
-function checkReminders(){
+function check(){
   let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
   let arr = JSON.parse(localStorage.getItem("rem")||"[]");
 
@@ -211,18 +182,13 @@ function checkReminders(){
   });
 }
 
-setInterval(checkReminders,60000);
+setInterval(check,60000);
 
 if(Notification.permission !== "granted"){
   Notification.requestPermission();
 }
 
 load();
-
-/* SERVICE WORKER */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("sw.js");
-}
 
 </script>
 
