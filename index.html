@@ -9,21 +9,10 @@
 <style>
 html, body {
   margin: 0;
-  padding: 0;
   font-family: Arial;
   background: #6bb6ff;
-
-  /* 🔥 HARD ZOOM BLOCK */
+  text-align: center;
   touch-action: none;
-  -ms-touch-action: none;
-  overscroll-behavior: none;
-}
-
-/* extra iOS zoom block */
-* {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .page { display:none; }
@@ -31,9 +20,9 @@ html, body {
 
 button {
   width: 95%;
-  height: 140px;
+  height: 130px;
   margin: 10px;
-  font-size: 36px;
+  font-size: 34px;
   border-radius: 25px;
   border: none;
 }
@@ -41,12 +30,12 @@ button {
 .red { background: red; color: white; }
 .white { background: white; }
 
-input {
-  width: 90%;
+.box {
+  background: white;
+  margin: 10px;
   padding: 20px;
-  font-size: 26px;
-  border-radius: 15px;
-  border: none;
+  border-radius: 20px;
+  font-size: 28px;
 }
 </style>
 </head>
@@ -59,8 +48,7 @@ input {
 
   <button class="red" onclick="tap(nood)">🚨 NOOD</button>
   <button class="white" onclick="tap(()=>show('call'))">📞 BELLEN</button>
-  <button class="white" onclick="tap(()=>show('rem'))">⏰ HERINNERING</button>
-  <button onclick="tap(toggleVoice)">🔊 STEM</button>
+  <button class="white" onclick="tap(()=>show('info'))">📺 INFO</button>
 </div>
 
 <!-- BELLEN -->
@@ -73,16 +61,19 @@ input {
   <button onclick="tap(()=>show('home'))">⬅️</button>
 </div>
 
-<!-- HERINNERING -->
-<div id="rem" class="page">
-  <h1>⏰</h1>
+<!-- INFO (TV + TIJD + ETEN) -->
+<div id="info" class="page">
+  <h1>📺 INFO</h1>
 
-  <input id="text" placeholder="Wat?">
-  <input id="time" type="time">
+  <div class="box" id="timeBox">Tijd: --:--</div>
 
-  <button onclick="tap(addReminder)">OPSLAAN</button>
+  <div class="box" id="tvBox">TV: UIT</div>
+  <button onclick="tap(tvOn)">TV AAN</button>
+  <button onclick="tap(tvOff)">TV UIT</button>
 
-  <div id="list"></div>
+  <div class="box" id="etenBox">Eten: niet ingesteld</div>
+  <input id="etenInput" placeholder="Eten van vandaag">
+  <button onclick="tap(saveEten)">OPSLAAN</button>
 
   <button onclick="tap(()=>show('home'))">⬅️</button>
 </div>
@@ -90,12 +81,11 @@ input {
 <script>
 
 /* ======================
-   ZOOM FIX (ECHT HARD)
+   ZOOM FIX
 ====================== */
 
-// blok double tap zoom
 let lastTap = 0;
-document.addEventListener("touchend", function(e){
+document.addEventListener("touchend", e=>{
   let now = Date.now();
   if(now - lastTap < 350){
     e.preventDefault();
@@ -103,13 +93,11 @@ document.addEventListener("touchend", function(e){
   lastTap = now;
 }, {passive:false});
 
-// blok pinch zoom
-document.addEventListener("gesturestart", e => e.preventDefault());
-document.addEventListener("gesturechange", e => e.preventDefault());
-document.addEventListener("gestureend", e => e.preventDefault());
+document.addEventListener("gesturestart", e=>e.preventDefault());
+document.addEventListener("gesturechange", e=>e.preventDefault());
 
 /* ======================
-   SAFE TAP WRAPPER
+   SAFE TAP
 ====================== */
 
 let lastAction = 0;
@@ -120,42 +108,20 @@ function tap(fn){
   lastAction = now;
 
   unlockAudio();
+  navigator.vibrate?.(50);
   fn();
 }
 
 /* ======================
-   AUDIO FIX (iPad SAFE)
+   AUDIO
 ====================== */
 
 let audioReady = false;
-let voice = true;
-let timer;
 
 function unlockAudio(){
   if(audioReady) return;
-
-  const u = new SpeechSynthesisUtterance(" ");
-  speechSynthesis.speak(u);
-
+  speechSynthesis.speak(new SpeechSynthesisUtterance(" "));
   audioReady = true;
-}
-
-function speak(text){
-  if(!voice || !audioReady) return;
-
-  clearTimeout(timer);
-
-  timer = setTimeout(()=>{
-    speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "nl-NL";
-    speechSynthesis.speak(msg);
-  }, 1500);
-}
-
-function toggleVoice(){
-  voice = !voice;
-  alert("Stem: " + (voice ? "AAN" : "UIT"));
 }
 
 /* ======================
@@ -165,82 +131,70 @@ function toggleVoice(){
 function show(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
+
+  if(id === "info") updateInfo();
 }
 
 /* ======================
-   FUNCTIES
+   NOOD + BELLEN
 ====================== */
 
 function nood(){
-  speak("Noodhulp");
+  alert("NOODHULP");
   window.open("tel:112");
 }
 
 function belZorg(){
-  speak("Zorg");
   window.open("https://wa.me/31612223226");
 }
 
 function belFamilie(){
-  speak("Familie");
   window.open("https://wa.me/31600000000");
 }
 
 /* ======================
-   HERINNERING
+   TV
 ====================== */
 
-function addReminder(){
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+let tv = false;
 
-  arr.push({
-    text: text.value,
-    time: time.value
-  });
-
-  localStorage.setItem("rem", JSON.stringify(arr));
-  load();
+function tvOn(){
+  tv = true;
+  document.getElementById("tvBox").innerText = "TV: AAN";
 }
 
-function load(){
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
-
-  list.innerHTML = arr.map((r,i)=>
-    `<div style="font-size:26px; margin:12px;">
-      ${r.text} - ${r.time}
-      <button onclick="tap(()=>del(${i}))">❌</button>
-    </div>`
-  ).join("");
-}
-
-function del(i){
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
-  arr.splice(i,1);
-  localStorage.setItem("rem", JSON.stringify(arr));
-  load();
+function tvOff(){
+  tv = false;
+  document.getElementById("tvBox").innerText = "TV: UIT";
 }
 
 /* ======================
-   NOTIFICATIES
+   ETEN
 ====================== */
 
-setInterval(()=>{
-  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
-
-  arr.forEach(r=>{
-    if(r.time === now){
-      new Notification("Herinnering: " + r.text);
-      speak(r.text);
-    }
-  });
-},60000);
-
-if(Notification.permission !== "granted"){
-  Notification.requestPermission();
+function saveEten(){
+  localStorage.setItem("eten", etenInput.value);
+  updateInfo();
 }
 
-load();
+/* ======================
+   INFO UPDATE
+====================== */
+
+function updateInfo(){
+  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
+  document.getElementById("timeBox").innerText = "Tijd: " + now;
+
+  document.getElementById("etenBox").innerText =
+    "Eten: " + (localStorage.getItem("eten") || "niet ingesteld");
+}
+
+/* auto update tijd */
+setInterval(()=>{
+  if(document.getElementById("info").classList.contains("active")){
+    updateInfo();
+  }
+},1000);
 
 </script>
 
