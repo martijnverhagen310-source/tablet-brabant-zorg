@@ -142,6 +142,13 @@ function chDown(){
 function volUp(){
   volume++;
   document.getElementById("volume").innerText = "Volume: " + volume;
+ const MAX_VOLUME = 50;
+  function volUp(){
+  if(volume < MAX_VOLUME){
+    volume++;
+  }
+  document.getElementById("volume").innerText = "Volume: " + volume;
+}
 }
 
 function volDown(){
