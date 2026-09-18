@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>Zorg Tablet</title>
 
 <style>
@@ -11,176 +10,151 @@ html, body {
   margin: 0;
   font-family: Arial;
   background: #6bb6ff;
-  overflow: hidden;
-}
-
-/* SLIDER */
-#container {
-  display: flex;
-  width: 400vw;
-  height: 100vh;
-  transition: transform 0.4s ease;
-}
-
-.page {
-  width: 100vw;
-  height: 100vh;
   text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
 }
 
+/* TAB MENU */
+#menu {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+#menu button {
+  flex: 1;
+  height: 80px;
+  font-size: 22px;
+  border: none;
+}
+
+/* PAGES */
+.page {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+/* KNOPPEN */
 button {
-  width: 90%;
+  width: 95%;
   height: 120px;
   margin: 10px;
-  font-size: 34px;
-  border-radius: 25px;
+  font-size: 32px;
+  border-radius: 20px;
   border: none;
 }
 
 .box {
   background: white;
-  padding: 20px;
+  padding: 15px;
   margin: 10px;
-  border-radius: 20px;
-  font-size: 26px;
+  border-radius: 15px;
+  font-size: 24px;
 }
 
-.nav {
-  position: fixed;
-  bottom: 10px;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-}
-
-.nav button {
-  width: 45%;
-  height: 80px;
-  font-size: 30px;
-}
+.red { background: red; color: white; }
+.white { background: white; }
 </style>
 </head>
 
 <body>
 
-<div id="container">
-
-<!-- HOME -->
-<div class="page">
-  <h1>🏠</h1>
-
-  <button onclick="nood()">🚨 NOOD</button>
-  <button onclick="go(1)">📺 TV</button>
-  <button onclick="go(2)">📞 BELLEN</button>
-  <button onclick="go(3)">⏰ HERINNERING</button>
-</div>
-
 <!-- TV -->
-<div class="page">
+<div id="tv" class="page active">
   <h1>📺 TV</h1>
 
-  <div class="box" id="tv">TV UIT</div>
-  <div class="box" id="vol">Volume: 10</div>
-  <div class="box" id="ch">Zender: 1</div>
+  <div class="box" id="tvStatus">TV: UIT</div>
+  <div class="box" id="channel">Zender: 1</div>
+  <div class="box" id="volume">Volume: 10</div>
 
-  <button onclick="volUp()">🔊 +</button>
-  <button onclick="volDown()">🔉 -</button>
+  <button onclick="tvOn()">AAN</button>
+  <button onclick="tvOff()">UIT</button>
 
-  <button onclick="chUp()">📺 +</button>
-  <button onclick="chDown()">📺 -</button>
+  <button onclick="chUp()">Zender +</button>
+  <button onclick="chDown()">Zender -</button>
+
+  <button onclick="volUp()">Volume +</button>
+  <button onclick="volDown()">Volume -</button>
 </div>
 
 <!-- CALL -->
-<div class="page">
-  <h1>📞</h1>
+<div id="call" class="page">
+  <h1>📞 BELLEN</h1>
 
-  <button onclick="belZorg()">👩‍⚕️ ZORG</button>
-  <button onclick="belFamilie()">👨‍👩‍👧 FAMILIE</button>
+  <button class="white" onclick="window.open('tel:112')">🚨 NOOD</button>
+  <button class="white" onclick="window.open('https://wa.me/31612223226')">👩‍⚕️ ZORG</button>
+  <button class="white" onclick="window.open('https://wa.me/31600000000')">👨‍👩‍👧 FAMILIE</button>
 </div>
 
 <!-- REMINDER -->
-<div class="page">
-  <h1>⏰</h1>
+<div id="rem" class="page">
+  <h1>⏰ HERINNERING</h1>
 
-  <input id="text" placeholder="Wat?">
+  <input id="text" placeholder="Wat moet er gebeuren?">
   <input id="time" type="time">
 
-  <button onclick="save()">OPSLAAN</button>
+  <button onclick="addRem()">OPSLAAN</button>
 
   <div id="list"></div>
 </div>
 
-</div>
-
-<!-- NAV -->
-<div class="nav">
-  <button onclick="prev()">⬅️</button>
-  <button onclick="next()">➡️</button>
+<!-- MENU -->
+<div id="menu">
+  <button onclick="show('tv')">📺 TV</button>
+  <button onclick="show('call')">📞 BELLEN</button>
+  <button onclick="show('rem')">⏰ HERINNERING</button>
 </div>
 
 <script>
 
-let page = 0;
-
-/* SLIDE NAV */
-function go(i){
-  page = i;
-  update();
-}
-
-function next(){
-  if(page < 3) page++;
-  update();
-}
-
-function prev(){
-  if(page > 0) page--;
-  update();
-}
-
-function update(){
-  document.getElementById("container").style.transform =
-    `translateX(-${page * 100}vw)`;
+/* NAV */
+function show(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
 /* TV */
-let volume = 10;
+let tvOnState = false;
 let channel = 1;
+let volume = 10;
 
-function volUp(){
-  volume++;
-  vol.innerText = "Volume: " + volume;
+function tvOn(){
+  tvOnState = true;
+  tvStatus.innerText = "TV: AAN";
 }
 
-function volDown(){
-  volume--;
-  vol.innerText = "Volume: " + volume;
+function tvOff(){
+  tvOnState = false;
+  tvStatus.innerText = "TV: UIT";
 }
 
 function chUp(){
   channel++;
-  ch.innerText = "Zender: " + channel;
+  document.getElementById("channel").innerText = "Zender: " + channel;
 }
 
 function chDown(){
   if(channel > 1) channel--;
-  ch.innerText = "Zender: " + channel;
+  document.getElementById("channel").innerText = "Zender: " + channel;
 }
 
-/* BELLEN */
-function belZorg(){
-  window.open("https://wa.me/31612223226");
+function volUp(){
+  volume++;
+  document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
-function belFamilie(){
-  window.open("https://wa.me/31600000000");
+function volDown(){
+  if(volume > 0) volume--;
+  document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
 /* HERINNERING */
-function save(){
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+function addRem(){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
   arr.push({
     text: text.value,
@@ -192,7 +166,7 @@ function save(){
 }
 
 function load(){
-  let arr = JSON.parse(localStorage.getItem("rem")||"[]");
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
   list.innerHTML = arr.map(r=>`
     <div class="box">${r.text} - ${r.time}</div>
