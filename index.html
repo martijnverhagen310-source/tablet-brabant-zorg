@@ -1,4 +1,4 @@
-a<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -13,7 +13,26 @@ html, body {
   text-align: center;
 }
 
-/* TAB MENU */
+.page { display:none; padding: 20px; }
+.active { display:block; }
+
+button {
+  width: 95%;
+  height: 110px;
+  margin: 10px;
+  font-size: 30px;
+  border-radius: 20px;
+  border: none;
+}
+
+.box {
+  background: white;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 15px;
+  font-size: 22px;
+}
+
 #menu {
   display: flex;
   position: fixed;
@@ -24,40 +43,9 @@ html, body {
 #menu button {
   flex: 1;
   height: 80px;
-  font-size: 22px;
+  font-size: 18px;
   border: none;
 }
-
-/* PAGES */
-.page {
-  display: none;
-  padding: 20px;
-}
-
-.active {
-  display: block;
-}
-
-/* KNOPPEN */
-button {
-  width: 95%;
-  height: 120px;
-  margin: 10px;
-  font-size: 32px;
-  border-radius: 20px;
-  border: none;
-}
-
-.box {
-  background: white;
-  padding: 15px;
-  margin: 10px;
-  border-radius: 15px;
-  font-size: 24px;
-}
-
-.red { background: red; color: white; }
-.white { background: white; }
 </style>
 </head>
 
@@ -81,23 +69,29 @@ button {
   <button onclick="volDown()">Volume -</button>
 </div>
 
-<!-- CALL -->
+<!-- BELLEN + NUMMERS -->
 <div id="call" class="page">
   <h1>📞 BELLEN</h1>
 
-  <button class="white" onclick="window.open('tel:112')">🚨 NOOD</button>
-  <button class="white" onclick="window.open('https://wa.me/31612223226')">👩‍⚕️ ZORG</button>
-  <button class="white" onclick="window.open('https://wa.me/31600000000')">👨‍👩‍👧 FAMILIE</button>
+  <input id="zorgNum" placeholder="Zorg nummer">
+  <button onclick="saveZorg()">Sla zorg nummer op</button>
+
+  <input id="famNum" placeholder="Familie nummer">
+  <button onclick="saveFam()">Sla familie nummer op</button>
+
+  <div class="box" id="savedNumbers"></div>
+
+  <button onclick="callZorg()">👩‍⚕️ Bel zorg</button>
+  <button onclick="callFam()">👨‍👩‍👧 Bel familie</button>
 </div>
 
-<!-- REMINDER -->
+<!-- HERINNERING -->
 <div id="rem" class="page">
   <h1>⏰ HERINNERING</h1>
 
   <input id="text" placeholder="Wat moet er gebeuren?">
   <input id="time" type="time">
-
-  <button onclick="addRem()">OPSLAAN</button>
+  <button onclick="addRem()">Toevoegen</button>
 
   <div id="list"></div>
 </div>
@@ -117,7 +111,10 @@ function show(id){
   document.getElementById(id).classList.add("active");
 }
 
-/* TV */
+/* ======================
+   TV
+====================== */
+
 let tvOnState = false;
 let channel = 1;
 let volume = 10;
@@ -152,7 +149,41 @@ function volDown(){
   document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
-/* HERINNERING */
+/* ======================
+   NUMMERS OPSLAAN
+====================== */
+
+function saveZorg(){
+  localStorage.setItem("zorgNum", zorgNum.value);
+  loadNumbers();
+}
+
+function saveFam(){
+  localStorage.setItem("famNum", famNum.value);
+  loadNumbers();
+}
+
+function loadNumbers(){
+  savedNumbers.innerHTML = `
+    <div class="box">👩‍⚕️ Zorg: ${localStorage.getItem("zorgNum") || "-"}</div>
+    <div class="box">👨‍👩‍👧 Familie: ${localStorage.getItem("famNum") || "-"}</div>
+  `;
+}
+
+function callZorg(){
+  let n = localStorage.getItem("zorgNum");
+  if(n) window.open("tel:" + n);
+}
+
+function callFam(){
+  let n = localStorage.getItem("famNum");
+  if(n) window.open("tel:" + n);
+}
+
+/* ======================
+   HERINNERINGEN
+====================== */
+
 function addRem(){
   let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
@@ -162,18 +193,29 @@ function addRem(){
   });
 
   localStorage.setItem("rem", JSON.stringify(arr));
-  load();
+  loadRem();
 }
 
-function load(){
+function delRem(i){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
+  arr.splice(i,1);
+  localStorage.setItem("rem", JSON.stringify(arr));
+  loadRem();
+}
+
+function loadRem(){
   let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
-  list.innerHTML = arr.map(r=>`
-    <div class="box">${r.text} - ${r.time}</div>
+  list.innerHTML = arr.map((r,i)=>`
+    <div class="box">
+      ${r.text} - ${r.time}
+      <button onclick="delRem(${i})">❌ verwijderen</button>
+    </div>
   `).join("");
 }
 
-load();
+loadNumbers();
+loadRem();
 
 </script>
 
