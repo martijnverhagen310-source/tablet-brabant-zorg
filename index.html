@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Zorg Tablet</title>
+<title>Zorg App</title>
 
 <style>
 html, body {
@@ -11,11 +11,35 @@ html, body {
   font-family: Arial;
   background: #6bb6ff;
   text-align: center;
+  overflow: hidden;
 }
 
-.page { display:none; padding: 20px; }
-.active { display:block; }
+/* NAV */
+#menu {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+}
 
+#menu button {
+  flex: 1;
+  height: 80px;
+  font-size: 20px;
+  border: none;
+}
+
+/* PAGES */
+.page {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+/* BUTTONS */
 button {
   width: 95%;
   height: 110px;
@@ -33,19 +57,8 @@ button {
   font-size: 22px;
 }
 
-#menu {
-  display: flex;
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-}
-
-#menu button {
-  flex: 1;
-  height: 80px;
-  font-size: 18px;
-  border: none;
-}
+.red { background: red; color: white; }
+.white { background: white; }
 </style>
 </head>
 
@@ -69,29 +82,23 @@ button {
   <button onclick="volDown()">Volume -</button>
 </div>
 
-<!-- BELLEN + NUMMERS -->
+<!-- CALL -->
 <div id="call" class="page">
   <h1>📞 BELLEN</h1>
 
-  <input id="zorgNum" placeholder="Zorg nummer">
-  <button onclick="saveZorg()">Sla zorg nummer op</button>
-
-  <input id="famNum" placeholder="Familie nummer">
-  <button onclick="saveFam()">Sla familie nummer op</button>
-
-  <div class="box" id="savedNumbers"></div>
-
-  <button onclick="callZorg()">👩‍⚕️ Bel zorg</button>
-  <button onclick="callFam()">👨‍👩‍👧 Bel familie</button>
+  <button class="white" onclick="window.open('tel:112')">🚨 NOOD</button>
+  <button class="white" onclick="callZorg()">👩‍⚕️ ZORG</button>
+  <button class="white" onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
 </div>
 
-<!-- HERINNERING -->
+<!-- REMINDER -->
 <div id="rem" class="page">
   <h1>⏰ HERINNERING</h1>
 
   <input id="text" placeholder="Wat moet er gebeuren?">
   <input id="time" type="time">
-  <button onclick="addRem()">Toevoegen</button>
+
+  <button onclick="addRem()">OPSLAAN</button>
 
   <div id="list"></div>
 </div>
@@ -118,15 +125,16 @@ function show(id){
 let tvOnState = false;
 let channel = 1;
 let volume = 10;
+const MAX_VOLUME = 20;
 
 function tvOn(){
   tvOnState = true;
-  tvStatus.innerText = "TV: AAN";
+  document.getElementById("tvStatus").innerText = "TV: AAN";
 }
 
 function tvOff(){
   tvOnState = false;
-  tvStatus.innerText = "TV: UIT";
+  document.getElementById("tvStatus").innerText = "TV: UIT";
 }
 
 function chUp(){
@@ -140,51 +148,33 @@ function chDown(){
 }
 
 function volUp(){
-  volume++;
-  document.getElementById("volume").innerText = "Volume: " + volume;
- const MAX_VOLUME = 50;
-  function volUp(){
   if(volume < MAX_VOLUME){
     volume++;
   }
   document.getElementById("volume").innerText = "Volume: " + volume;
 }
-}
 
 function volDown(){
-  if(volume > 0) volume--;
+  if(volume > 0){
+    volume--;
+  }
   document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
 /* ======================
-   NUMMERS OPSLAAN
+   BELLEN
 ====================== */
-
-function saveZorg(){
-  localStorage.setItem("zorgNum", zorgNum.value);
-  loadNumbers();
-}
-
-function saveFam(){
-  localStorage.setItem("famNum", famNum.value);
-  loadNumbers();
-}
-
-function loadNumbers(){
-  savedNumbers.innerHTML = `
-    <div class="box">👩‍⚕️ Zorg: ${localStorage.getItem("zorgNum") || "-"}</div>
-    <div class="box">👨‍👩‍👧 Familie: ${localStorage.getItem("famNum") || "-"}</div>
-  `;
-}
 
 function callZorg(){
   let n = localStorage.getItem("zorgNum");
   if(n) window.open("tel:" + n);
+  else alert("Geen nummer opgeslagen");
 }
 
 function callFam(){
   let n = localStorage.getItem("famNum");
   if(n) window.open("tel:" + n);
+  else alert("Geen nummer opgeslagen");
 }
 
 /* ======================
@@ -221,7 +211,6 @@ function loadRem(){
   `).join("");
 }
 
-loadNumbers();
 loadRem();
 
 </script>
