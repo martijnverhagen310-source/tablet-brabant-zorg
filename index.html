@@ -21,26 +21,26 @@ button {
   width: 95%;
   height: 140px;
   margin: 10px;
-  font-size: 38px;
+  font-size: 34px;
   border-radius: 25px;
   border: none;
 }
 
-.red { background: red; color: white; }
 .white { background: white; }
+.red { background: red; color: white; }
 
 .box {
   background: white;
   margin: 10px;
   padding: 20px;
   border-radius: 20px;
-  font-size: 28px;
+  font-size: 26px;
 }
 
 input {
   width: 90%;
   padding: 20px;
-  font-size: 26px;
+  font-size: 24px;
   border-radius: 15px;
   border: none;
 }
@@ -62,18 +62,17 @@ input {
 <div id="tv" class="page">
   <h1>📺 TV</h1>
 
-  <div class="box" id="tvStatus">TV: UIT</div>
-  <div class="box" id="channelBox">Zender: 1</div>
-  <div class="box" id="volumeBox">Volume: 10</div>
+  <div class="box">Status: verbonden of niet zie console</div>
 
-  <button onclick="tap(tvOn)">AAN</button>
-  <button onclick="tap(tvOff)">UIT</button>
+  <button onclick="tap(connectTV)">🔌 VERBIND TV</button>
 
-  <button onclick="tap(channelUp)">📺 Zender +</button>
-  <button onclick="tap(channelDown)">📺 Zender -</button>
+  <button onclick="tap(()=>sendKey('KEY_POWER'))">AAN / UIT</button>
 
-  <button onclick="tap(volumeUp)">🔊 Volume +</button>
-  <button onclick="tap(volumeDown)">🔉 Volume -</button>
+  <button onclick="tap(()=>sendKey('KEY_CHUP'))">📺 ZENDER +</button>
+  <button onclick="tap(()=>sendKey('KEY_CHDOWN'))">📺 ZENDER -</button>
+
+  <button onclick="tap(()=>sendKey('KEY_VOLUP'))">🔊 VOLUME +</button>
+  <button onclick="tap(()=>sendKey('KEY_VOLDOWN'))">🔉 VOLUME -</button>
 
   <button onclick="tap(()=>show('home'))">⬅️ TERUG</button>
 </div>
@@ -105,11 +104,17 @@ input {
 <script>
 
 /* ======================
-   ZOOM FIX iPAD
+   🔧 PAS DIT AAN
+====================== */
+
+// 👇 VUL HIER JE TV IP IN
+const TV_IP = "192.168.1.45";
+
+/* ======================
+   ZOOM FIX
 ====================== */
 
 let lastTap = 0;
-
 document.addEventListener("touchend", e=>{
   let now = Date.now();
   if(now - lastTap < 350){
@@ -121,12 +126,10 @@ document.addEventListener("touchend", e=>{
 document.addEventListener("gesturestart", e=>e.preventDefault());
 
 /* ======================
-   AUDIO FIX (BELANGRIJK)
+   AUDIO FIX
 ====================== */
 
 let audioReady = false;
-let voice = true;
-let timer;
 
 function unlockAudio(){
   if(audioReady) return;
@@ -134,21 +137,8 @@ function unlockAudio(){
   audioReady = true;
 }
 
-function speak(text){
-  if(!voice || !audioReady) return;
-
-  clearTimeout(timer);
-
-  timer = setTimeout(()=>{
-    speechSynthesis.cancel();
-    let msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "nl-NL";
-    speechSynthesis.speak(msg);
-  }, 1500);
-}
-
 /* ======================
-   SAFE TAP
+   TAP FIX
 ====================== */
 
 function tap(fn){
@@ -167,71 +157,38 @@ function show(id){
 }
 
 /* ======================
-   TV
+   📺 SAMSUNG TV
 ====================== */
 
-let tv = false;
+let ws;
 
-function tvOn(){
-  tv = true;
-  document.getElementById("tvStatus").innerText = "TV: AAN";
-  speak("TV aan");
+function connectTV(){
+  ws = new WebSocket(`ws://${TV_IP}:8001/api/v2/channels/samsung.remote.control`);
+
+  ws.onopen = () => {
+    alert("Verbonden met TV ✅");
+  };
+
+  ws.onerror = () => {
+    alert("Verbinding mislukt ❌");
+  };
 }
 
-function tvOff(){
-  tv = false;
-  document.getElementById("tvStatus").innerText = "TV: UIT";
-  speak("TV uit");
-}
-  let tv = false;
-let channel = 1;
-let volume = 10;
+function sendKey(key){
+  if(!ws || ws.readyState !== 1){
+    alert("Eerst verbinden!");
+    return;
+  }
 
-/* TV AAN/UIT */
-function tvOn(){
-  tv = true;
-  tvStatus.innerText = "TV: AAN";
-  speak("TV aan");
-}
-
-function tvOff(){
-  tv = false;
-  tvStatus.innerText = "TV: UIT";
-  speak("TV uit");
-}
-
-/* ZENDER */
-function channelUp(){
-  if(!tv) return;
-  channel++;
-  updateTV();
-}
-
-function channelDown(){
-  if(!tv) return;
-  if(channel > 1) channel--;
-  updateTV();
-}
-
-/* VOLUME */
-function volumeUp(){
-  if(!tv) return;
-  volume++;
-  updateTV();
-}
-
-function volumeDown(){
-  if(!tv) return;
-  if(volume > 0) volume--;
-  updateTV();
-}
-
-/* UPDATE */
-function updateTV(){
-  channelBox.innerText = "Zender: " + channel;
-  volumeBox.innerText = "Volume: " + volume;
-
-  speak("Zender " + channel + " volume " + volume);
+  ws.send(JSON.stringify({
+    method: "ms.remote.control",
+    params: {
+      Cmd: "Click",
+      DataOfCmd: key,
+      Option: "false",
+      TypeOfRemote: "SendRemoteKey"
+    }
+  }));
 }
 
 /* ======================
@@ -239,12 +196,10 @@ function updateTV(){
 ====================== */
 
 function belZorg(){
-  speak("Zorgverlener bellen");
   window.open("https://wa.me/31612223226");
 }
 
 function belFamilie(){
-  speak("Familie bellen");
   window.open("https://wa.me/31600000000");
 }
 
@@ -268,7 +223,7 @@ function load(){
   let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
   list.innerHTML = arr.map((r,i)=>
-    `<div style="font-size:26px; margin:10px;">
+    `<div style="font-size:24px; margin:10px;">
       ${r.text} - ${r.time}
       <button onclick="tap(()=>del(${i}))">❌</button>
     </div>`
@@ -280,26 +235,6 @@ function del(i){
   arr.splice(i,1);
   localStorage.setItem("rem", JSON.stringify(arr));
   load();
-}
-
-/* ======================
-   HERINNERING CHECK
-====================== */
-
-setInterval(()=>{
-  let now = new Date().toLocaleTimeString("nl-NL",{hour:"2-digit",minute:"2-digit"});
-  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
-
-  arr.forEach(r=>{
-    if(r.time === now){
-      speak(r.text);
-      new Notification("Herinnering: " + r.text);
-    }
-  });
-},60000);
-
-if(Notification.permission !== "granted"){
-  Notification.requestPermission();
 }
 
 load();
