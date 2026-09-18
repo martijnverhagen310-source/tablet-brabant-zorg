@@ -183,6 +183,56 @@ function tvOff(){
   document.getElementById("tvStatus").innerText = "TV: UIT";
   speak("TV uit");
 }
+  let tv = false;
+let channel = 1;
+let volume = 10;
+
+/* TV AAN/UIT */
+function tvOn(){
+  tv = true;
+  tvStatus.innerText = "TV: AAN";
+  speak("TV aan");
+}
+
+function tvOff(){
+  tv = false;
+  tvStatus.innerText = "TV: UIT";
+  speak("TV uit");
+}
+
+/* ZENDER */
+function channelUp(){
+  if(!tv) return;
+  channel++;
+  updateTV();
+}
+
+function channelDown(){
+  if(!tv) return;
+  if(channel > 1) channel--;
+  updateTV();
+}
+
+/* VOLUME */
+function volumeUp(){
+  if(!tv) return;
+  volume++;
+  updateTV();
+}
+
+function volumeDown(){
+  if(!tv) return;
+  if(volume > 0) volume--;
+  updateTV();
+}
+
+/* UPDATE */
+function updateTV(){
+  channelBox.innerText = "Zender: " + channel;
+  volumeBox.innerText = "Volume: " + volume;
+
+  speak("Zender " + channel + " volume " + volume);
+}
 
 /* ======================
    BELLEN
