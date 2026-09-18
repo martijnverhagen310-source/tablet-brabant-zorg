@@ -63,9 +63,17 @@ input {
   <h1>📺 TV</h1>
 
   <div class="box" id="tvStatus">TV: UIT</div>
+  <div class="box" id="channelBox">Zender: 1</div>
+  <div class="box" id="volumeBox">Volume: 10</div>
 
   <button onclick="tap(tvOn)">AAN</button>
   <button onclick="tap(tvOff)">UIT</button>
+
+  <button onclick="tap(channelUp)">📺 Zender +</button>
+  <button onclick="tap(channelDown)">📺 Zender -</button>
+
+  <button onclick="tap(volumeUp)">🔊 Volume +</button>
+  <button onclick="tap(volumeDown)">🔉 Volume -</button>
 
   <button onclick="tap(()=>show('home'))">⬅️ TERUG</button>
 </div>
