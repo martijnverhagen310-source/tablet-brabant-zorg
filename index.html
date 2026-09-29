@@ -2,8 +2,7 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zorg App</title>
 
 <style>
@@ -11,24 +10,16 @@ html, body {
   margin: 0;
   font-family: Arial;
   background: #6bb6ff;
-  overflow: hidden;
   text-align: center;
-}
-
-.page {
-  display: none;
-  padding: 20px;
-}
-
-.active {
-  display: block;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
 }
 
 button {
   width: 95%;
   height: 110px;
   margin: 10px;
-  font-size: 28px;
+  font-size: 30px;
   border-radius: 20px;
   border: none;
 }
@@ -42,18 +33,17 @@ button {
 }
 
 /* pijltjes */
-.nav {
+#arrows {
   position: fixed;
   right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 20px;
 }
 
-.nav button {
+#arrows button {
   width: 80px;
   height: 80px;
   font-size: 30px;
-  margin: 10px;
+  margin: 5px;
 }
 </style>
 </head>
@@ -61,82 +51,60 @@ button {
 <body>
 
 <!-- TV -->
-<div id="tv" class="page active">
-  <h1>📺 TV</h1>
+<h1>📺 TV</h1>
 
-  <div class="box" id="tvStatus">TV: UIT</div>
-  <div class="box" id="channel">Zender: 1</div>
-  <div class="box" id="volume">Volume: 10</div>
+<div class="box" id="tvStatus">TV: UIT</div>
+<div class="box" id="channel">Zender: 1</div>
+<div class="box" id="volume">Volume: 10</div>
 
-  <button onclick="tvOn()">AAN</button>
-  <button onclick="tvOff()">UIT</button>
+<button onclick="tvOn()">AAN</button>
+<button onclick="tvOff()">UIT</button>
 
-  <button onclick="chUp()">Zender +</button>
-  <button onclick="chDown()">Zender -</button>
+<button onclick="chUp()">Zender +</button>
+<button onclick="chDown()">Zender -</button>
 
-  <button onclick="volUp()">Volume +</button>
-  <button onclick="volDown()">Volume -</button>
-</div>
+<button onclick="volUp()">Volume +</button>
+<button onclick="volDown()">Volume -</button>
 
-<!-- CALL -->
-<div id="call" class="page">
-  <h1>📞 BELLEN</h1>
+<hr>
 
-  <button onclick="window.open('tel:112')">🚨 NOOD</button>
-  <button onclick="callZorg()">👩‍⚕️ ZORG</button>
-  <button onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
-</div>
+<!-- BELLEN -->
+<h1>📞 BELLEN</h1>
 
-<!-- REMINDER -->
-<div id="rem" class="page">
-  <h1>⏰ HERINNERING</h1>
+<button onclick="window.open('tel:112')">🚨 NOOD</button>
+<button onclick="callZorg()">👩‍⚕️ ZORG</button>
+<button onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
 
-  <input id="text" placeholder="Wat moet er gebeuren?">
-  <input id="time" type="time">
+<hr>
 
-  <button onclick="addRem()">OPSLAAN</button>
+<!-- HERINNERING -->
+<h1>⏰ HERINNERING</h1>
 
-  <div id="list"></div>
-</div>
+<input id="text" placeholder="Wat moet er gebeuren?">
+<input id="time" type="time">
+
+<button onclick="addRem()">OPSLAAN</button>
+
+<div id="list"></div>
 
 <!-- PIJLTJES -->
-<div class="nav">
-  <button onclick="up()">⬆️</button>
-  <button onclick="down()">⬇️</button>
+<div id="arrows">
+  <button onclick="scrollUp()">⬆️</button>
+  <button onclick="scrollDown()">⬇️</button>
 </div>
 
 <script>
 
-/* ======================
-   NAVIGATIE
-====================== */
-
-let pages = ["tv","call","rem"];
-let current = 0;
-
-function show(){
-  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(pages[current]).classList.add("active");
+/* SCROLL FUNCTIES */
+function scrollUp(){
+  window.scrollBy({ top: -400, behavior: "smooth" });
 }
 
-function up(){
-  if(current > 0){
-    current--;
-    show();
-  }
+function scrollDown(){
+  window.scrollBy({ top: 400, behavior: "smooth" });
 }
 
-function down(){
-  if(current < pages.length - 1){
-    current++;
-    show();
-  }
-}
-
-/* ======================
-   TV
-====================== */
-
+/* TV */
 let tvOnState = false;
 let channel = 1;
 let volume = 10;
@@ -176,26 +144,20 @@ function volDown(){
   document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
-/* ======================
-   BELLEN
-====================== */
-
+/* BELLEN */
 function callZorg(){
   let n = localStorage.getItem("zorgNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen zorg nummer");
+  else alert("Geen nummer opgeslagen");
 }
 
 function callFam(){
   let n = localStorage.getItem("famNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen familie nummer");
+  else alert("Geen nummer opgeslagen");
 }
 
-/* ======================
-   HERINNERINGEN
-====================== */
-
+/* HERINNERINGEN */
 function addRem(){
   let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
