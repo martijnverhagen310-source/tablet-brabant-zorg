@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <title>Zorg App</title>
 
 <style>
@@ -10,26 +11,10 @@ html, body {
   margin: 0;
   font-family: Arial;
   background: #6bb6ff;
-  text-align: center;
   overflow: hidden;
+  text-align: center;
 }
 
-/* NAV */
-#menu {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-}
-
-#menu button {
-  flex: 1;
-  height: 80px;
-  font-size: 20px;
-  border: none;
-}
-
-/* PAGES */
 .page {
   display: none;
   padding: 20px;
@@ -39,12 +24,11 @@ html, body {
   display: block;
 }
 
-/* BUTTONS */
 button {
   width: 95%;
   height: 110px;
   margin: 10px;
-  font-size: 30px;
+  font-size: 28px;
   border-radius: 20px;
   border: none;
 }
@@ -57,8 +41,20 @@ button {
   font-size: 22px;
 }
 
-.red { background: red; color: white; }
-.white { background: white; }
+/* pijltjes */
+.nav {
+  position: fixed;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.nav button {
+  width: 80px;
+  height: 80px;
+  font-size: 30px;
+  margin: 10px;
+}
 </style>
 </head>
 
@@ -86,9 +82,9 @@ button {
 <div id="call" class="page">
   <h1>📞 BELLEN</h1>
 
-  <button class="white" onclick="window.open('tel:112')">🚨 NOOD</button>
-  <button class="white" onclick="callZorg()">👩‍⚕️ ZORG</button>
-  <button class="white" onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
+  <button onclick="window.open('tel:112')">🚨 NOOD</button>
+  <button onclick="callZorg()">👩‍⚕️ ZORG</button>
+  <button onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
 </div>
 
 <!-- REMINDER -->
@@ -103,19 +99,38 @@ button {
   <div id="list"></div>
 </div>
 
-<!-- MENU -->
-<div id="menu">
-  <button onclick="show('tv')">📺 TV</button>
-  <button onclick="show('call')">📞 BELLEN</button>
-  <button onclick="show('rem')">⏰ HERINNERING</button>
+<!-- PIJLTJES -->
+<div class="nav">
+  <button onclick="up()">⬆️</button>
+  <button onclick="down()">⬇️</button>
 </div>
 
 <script>
 
-/* NAV */
-function show(id){
+/* ======================
+   NAVIGATIE
+====================== */
+
+let pages = ["tv","call","rem"];
+let current = 0;
+
+function show(){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.getElementById(pages[current]).classList.add("active");
+}
+
+function up(){
+  if(current > 0){
+    current--;
+    show();
+  }
+}
+
+function down(){
+  if(current < pages.length - 1){
+    current++;
+    show();
+  }
 }
 
 /* ======================
@@ -168,13 +183,13 @@ function volDown(){
 function callZorg(){
   let n = localStorage.getItem("zorgNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen nummer opgeslagen");
+  else alert("Geen zorg nummer");
 }
 
 function callFam(){
   let n = localStorage.getItem("famNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen nummer opgeslagen");
+  else alert("Geen familie nummer");
 }
 
 /* ======================
@@ -206,7 +221,7 @@ function loadRem(){
   list.innerHTML = arr.map((r,i)=>`
     <div class="box">
       ${r.text} - ${r.time}
-      <button onclick="delRem(${i})">❌ verwijderen</button>
+      <button onclick="delRem(${i})">❌</button>
     </div>
   `).join("");
 }
