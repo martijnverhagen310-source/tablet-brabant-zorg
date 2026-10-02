@@ -11,15 +11,29 @@ html, body {
   font-family: Arial;
   background: #6bb6ff;
   text-align: center;
-  overflow-y: scroll;
-  scroll-behavior: smooth;
+}
+
+/* kleine dev knop */
+#devBtn {
+  position: fixed;
+  top: 5px;
+  left: 5px;
+  font-size: 14px;
+  opacity: 0.2;
+  width: 40px;
+  height: 40px;
+}
+
+/* pagina */
+.section {
+  padding: 20px;
 }
 
 button {
   width: 95%;
   height: 110px;
   margin: 10px;
-  font-size: 30px;
+  font-size: 28px;
   border-radius: 20px;
   border: none;
 }
@@ -29,105 +43,129 @@ button {
   padding: 15px;
   margin: 10px;
   border-radius: 15px;
-  font-size: 22px;
 }
 
-/* pijltjes */
-#arrows {
+/* dev scherm */
+#devPanel {
+  display: none;
+  background: white;
   position: fixed;
-  right: 10px;
-  bottom: 20px;
-}
-
-#arrows button {
-  width: 80px;
-  height: 80px;
-  font-size: 30px;
-  margin: 5px;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  padding: 20px;
+  border-radius: 20px;
 }
 </style>
 </head>
 
 <body>
 
+<!-- DEV BUTTON -->
+<button id="devBtn" onclick="openDev()">🔧</button>
+
+<h1 id="name">Patiënt</h1>
+
 <!-- TV -->
-<h1>📺 TV</h1>
+<div class="section">
+<h2>📺 TV</h2>
 
 <div class="box" id="tvStatus">TV: UIT</div>
-<div class="box" id="channel">Zender: 1</div>
 <div class="box" id="volume">Volume: 10</div>
 
 <button onclick="tvOn()">AAN</button>
 <button onclick="tvOff()">UIT</button>
 
-<button onclick="chUp()">Zender +</button>
-<button onclick="chDown()">Zender -</button>
-
 <button onclick="volUp()">Volume +</button>
 <button onclick="volDown()">Volume -</button>
-
-<hr>
+</div>
 
 <!-- BELLEN -->
-<h1>📞 BELLEN</h1>
+<div class="section">
+<h2>📞 BELLEN</h2>
 
-<button onclick="window.open('tel:112')">🚨 NOOD</button>
-<button onclick="callZorg()">👩‍⚕️ ZORG</button>
-<button onclick="callFam()">👨‍👩‍👧 FAMILIE</button>
-
-<hr>
+<button onclick="callZorg()">👩‍⚕️ Zorg</button>
+<button onclick="callFam()">👨‍👩‍👧 Familie</button>
+</div>
 
 <!-- HERINNERING -->
-<h1>⏰ HERINNERING</h1>
+<div class="section">
+<h2>⏰ HERINNERING</h2>
 
 <input id="text" placeholder="Wat moet er gebeuren?">
-<input id="time" type="time">
-
-<button onclick="addRem()">OPSLAAN</button>
+<button onclick="addRem()">Opslaan</button>
 
 <div id="list"></div>
+</div>
 
-<!-- PIJLTJES -->
-<div id="arrows">
-  <button onclick="scrollUp()">⬆️</button>
-  <button onclick="scrollDown()">⬇️</button>
+<!-- DEV PANEL -->
+<div id="devPanel">
+  <h2>🔧 Dev modus</h2>
+
+  <input id="newName" placeholder="Naam patiënt">
+  <button onclick="saveName()">Opslaan naam</button>
+
+  <input id="zorgNum" placeholder="Zorg nummer">
+  <button onclick="saveZorg()">Opslaan zorg nummer</button>
+
+  <input id="famNum" placeholder="Familie nummer">
+  <button onclick="saveFam()">Opslaan familie nummer</button>
+
+  <button onclick="closeDev()">Sluiten</button>
 </div>
 
 <script>
 
-/* SCROLL FUNCTIES */
-function scrollUp(){
-  window.scrollBy({ top: -400, behavior: "smooth" });
+/* ======================
+   DEV MODE
+====================== */
+
+function openDev(){
+  let code = prompt("Voer code in");
+  if(code === "1234"){
+    document.getElementById("devPanel").style.display = "block";
+  }
 }
 
-function scrollDown(){
-  window.scrollBy({ top: 400, behavior: "smooth" });
+function closeDev(){
+  document.getElementById("devPanel").style.display = "none";
 }
 
-/* TV */
-let tvOnState = false;
-let channel = 1;
+/* ======================
+   OPSLAAN DATA
+====================== */
+
+function saveName(){
+  localStorage.setItem("name", newName.value);
+  load();
+}
+
+function saveZorg(){
+  localStorage.setItem("zorgNum", zorgNum.value);
+}
+
+function saveFam(){
+  localStorage.setItem("famNum", famNum.value);
+}
+
+function load(){
+  document.getElementById("name").innerText =
+    localStorage.getItem("name") || "Patiënt";
+}
+
+/* ======================
+   TV
+====================== */
+
 let volume = 10;
 const MAX_VOLUME = 20;
 
 function tvOn(){
-  tvOnState = true;
-  document.getElementById("tvStatus").innerText = "TV: AAN";
+  tvStatus.innerText = "TV: AAN";
 }
 
 function tvOff(){
-  tvOnState = false;
-  document.getElementById("tvStatus").innerText = "TV: UIT";
-}
-
-function chUp(){
-  channel++;
-  document.getElementById("channel").innerText = "Zender: " + channel;
-}
-
-function chDown(){
-  if(channel > 1) channel--;
-  document.getElementById("channel").innerText = "Zender: " + channel;
+  tvStatus.innerText = "TV: UIT";
 }
 
 function volUp(){
@@ -144,35 +182,28 @@ function volDown(){
   document.getElementById("volume").innerText = "Volume: " + volume;
 }
 
-/* BELLEN */
+/* ======================
+   BELLEN
+====================== */
+
 function callZorg(){
   let n = localStorage.getItem("zorgNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen nummer opgeslagen");
 }
 
 function callFam(){
   let n = localStorage.getItem("famNum");
   if(n) window.open("tel:" + n);
-  else alert("Geen nummer opgeslagen");
 }
 
-/* HERINNERINGEN */
+/* ======================
+   HERINNERING
+====================== */
+
 function addRem(){
   let arr = JSON.parse(localStorage.getItem("rem") || "[]");
 
-  arr.push({
-    text: text.value,
-    time: time.value
-  });
-
-  localStorage.setItem("rem", JSON.stringify(arr));
-  loadRem();
-}
-
-function delRem(i){
-  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
-  arr.splice(i,1);
+  arr.push(text.value);
   localStorage.setItem("rem", JSON.stringify(arr));
   loadRem();
 }
@@ -182,12 +213,20 @@ function loadRem(){
 
   list.innerHTML = arr.map((r,i)=>`
     <div class="box">
-      ${r.text} - ${r.time}
+      ${r}
       <button onclick="delRem(${i})">❌</button>
     </div>
   `).join("");
 }
 
+function delRem(i){
+  let arr = JSON.parse(localStorage.getItem("rem") || "[]");
+  arr.splice(i,1);
+  localStorage.setItem("rem", JSON.stringify(arr));
+  loadRem();
+}
+
+load();
 loadRem();
 
 </script>
